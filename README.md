@@ -13,3 +13,7 @@ During this session, we went over:
 * [Create a CNN to avoid overfitting MLPs on large dataset](https://github.com/IHIaadj/reading_sessions/blob/main/AlexNet/CNN%20Simple.ipynb)
 * [Use a pretrained Alexnet on an image](https://github.com/IHIaadj/reading_sessions/blob/main/AlexNet/Pretrained%20Alexnet.ipynb)
 * [Summary of the paper](https://github.com/IHIaadj/reading_sessions/blob/main/AlexNet/summary.pdf)
+## Reading session #2 : Spiking neural networks 
+we have read [Survey of Purpose of Hardware Implementation of Spiking Neural Networks](https://arxiv.org/ftp/arxiv/papers/2005/2005.01467.pdf)
+The files concerning these sessions are in ```./SNN```.
+* [spiking CNN with 98% accuracy on mnist using spikingjelly - Amine Ziad Ounnoughene](https://github.com/IHIaadj/reading_sessions/blob/main/SNN/spiking-cnn-amine-ziad.ipynb)
