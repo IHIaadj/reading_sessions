@@ -16,5 +16,5 @@ During this session, we went over:
 ## Reading session #2 : Spiking neural networks 
 we have read [Survey of Purpose of Hardware Implementation of Spiking Neural Networks](https://arxiv.org/ftp/arxiv/papers/2005/2005.01467.pdf).
 
-The files concerning these sessions are in ```./SNN```.
+The files concerning these sessions are in ```./SNN``` .
 * [spiking CNN with 98% accuracy on mnist using spikingjelly - Amine Ziad Ounnoughene](https://github.com/IHIaadj/reading_sessions/blob/main/SNN/spiking-cnn-amine-ziad.ipynb)
