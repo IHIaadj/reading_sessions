@@ -19,10 +19,10 @@ we have read [Survey of Purpose of Hardware Implementation of Spiking Neural Net
 The files concerning these sessions are in ```./SNN``` .
 * [spiking CNN with 98% accuracy on mnist using spikingjelly - Amine Ziad Ounnoughene](https://github.com/IHIaadj/reading_sessions/blob/main/SNN/spiking-cnn.ipynb)
 ## Reading session #3 : "TABULAR DATA: DEEP LEARNING IS NOT ALL YOU NEED"
-we have downloaded the data from here [link](https://archive.ics.uci.edu/ml/datasets/covertype)
-we have read [TABULAR DATA: DEEP LEARNING IS NOT ALL YOU NEED](https://arxiv.org/pdf/2106.03253.pdf).
+- we have downloaded the data from here [link](https://archive.ics.uci.edu/ml/datasets/covertype)
+- we have read [TABULAR DATA: DEEP LEARNING IS NOT ALL YOU NEED](https://arxiv.org/pdf/2106.03253.pdf).
 
-The files concerning these sessions are in ```./DL IS NOT ALL YOU NEED``` .
+The files concerning this session are in ```./DL IS NOT ALL YOU NEED``` .
 * [XGB boost and TabNet trained with the used hyperparameters in the paper on the Covertype dataset](https://github.com/IHIaadj/reading_sessions/blob/main/SNN/spiking-cnn.ipynb)
 * [Challenge : A weighted ensemble average of the XGB boost and the TabNet predictions](https://github.com/IHIaadj/reading_sessions/blob/main/SNN/spiking-cnn.ipynb)
 
