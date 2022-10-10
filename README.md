@@ -1,7 +1,7 @@
 # SOAI Reading Sessions
 Contains notebooks and description files of the article read during our weekly friday sessions.
 
-Want to join us ? Join this [discord](https://discord.gg/n8BKXuCam2) =) 
+Want to join us ? Join this [discord](https://discord.gg/bpMAAcFn) =) 
 
 ## Reading Session #1: AlexNet
 Friday 24/12/2021 and 31/12/2021 were dedicated to read [ImageNet Classification with Deep Convolutional Neural Networks](https://papers.nips.cc/paper/2012/file/c399862d3b9d6b76c8436e924a68c45b-Paper.pdf) article. 
@@ -18,3 +18,11 @@ we have read [Survey of Purpose of Hardware Implementation of Spiking Neural Net
 
 The files concerning these sessions are in ```./SNN``` .
 * [spiking CNN with 98% accuracy on mnist using spikingjelly - Amine Ziad Ounnoughene](https://github.com/IHIaadj/reading_sessions/blob/main/SNN/spiking-cnn.ipynb)
+## Reading session #3 : "TABULAR DATA: DEEP LEARNING IS NOT ALL YOU NEED"
+we have downloaded the data from here [link](https://archive.ics.uci.edu/ml/datasets/covertype)
+we have read [TABULAR DATA: DEEP LEARNING IS NOT ALL YOU NEED](https://arxiv.org/pdf/2106.03253.pdf).
+
+The files concerning these sessions are in ```./DL IS NOT ALL YOU NEED``` .
+* [XGB boost and TabNet trained with the used hyperparameters in the paper on the Covertype dataset](https://github.com/IHIaadj/reading_sessions/blob/main/SNN/spiking-cnn.ipynb)
+* [Challenge : A weighted ensemble average of the XGB boost and the TabNet predictions](https://github.com/IHIaadj/reading_sessions/blob/main/SNN/spiking-cnn.ipynb)
+
