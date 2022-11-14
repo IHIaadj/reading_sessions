@@ -32,20 +32,19 @@ num_steps = 100
 
 loss_hist = []
 acc_hist = []
-
+torch.autograd.set_detect_anomaly(True)
 # training loop
+net.train()
 for epoch in range(num_epochs):
     for i, (data, targets) in enumerate(iter(train_loader)):
         data = data.to(device)
         targets = targets.to(device)
-
-        net.train()
         spk_rec, _ = net(data)
         loss_val = loss_fn(spk_rec, targets)
 
         # Gradient calculation + weight update
         optimizer.zero_grad()
-        loss_val.backward()
+        loss_val.backward(retain_graph=True)
         optimizer.step()
 
         # Store loss history for future plotting
@@ -56,7 +55,7 @@ for epoch in range(num_epochs):
           print(f"Epoch {epoch}, Iteration {i} \nTrain Loss: {loss_val.item():.2f}")
 
           # check accuracy on a single batch
-          acc = SF.accuracy_rate(spk_rec, targets)  
-          acc_hist.append(acc)
-          print(f"Accuracy: {acc * 100:.2f}%\n")
+          #acc = SF.accuracy_rate(spk_rec, targets)  
+          #acc_hist.append(acc)
+          #print(f"Accuracy: {acc * 100:.2f}%\n")
         

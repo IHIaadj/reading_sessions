@@ -70,9 +70,9 @@ class _DenseBlock(nn.ModuleDict):
 
     def forward(self, init_features):
         features = [init_features]
-        print(init_features.shape)
+        #print(init_features.shape)
         for name, layer in self.items():
-            print(layer)
+            #print(layer)
             new_features, _ = layer(features)
             features.append(new_features)
         return torch.cat(features, 1)
@@ -91,7 +91,7 @@ class SpikingDenseNet(nn.Module):
 
     def __init__(self, growth_rate=32, block_config=(6, 12, 24, 16), 
                  num_init_channels=2, bn_size=4, drop_rate=0, 
-                 num_classes=1000, init_weights=True, norm_layer: callable = None, 
+                 num_classes=10, init_weights=True, norm_layer: callable = None, 
                  node: callable = None, **kwargs):
         
         super().__init__()
@@ -105,7 +105,7 @@ class SpikingDenseNet(nn.Module):
             
         num_init_features = 2 * growth_rate
         spike_grad = surrogate.fast_sigmoid()
-        print(bias)
+        #print(bias)
         # First convolution
         self.pad0 = nn.ConstantPad2d(1, 0.)
         self.norm0 = norm_layer(num_init_channels)
@@ -192,14 +192,12 @@ class SpikingDenseNet(nn.Module):
         return spk2_rec[-1], mem2_rec[-1]
     
     def forward(self, x):
-        print("start")
+        #print("start")
         features, _ = self.forward_features(x)
-        print("done1")
-        features,_ = self.features(features)
-        print("done2")
-        out, _ = self.forward_classif(features)
+        features = self.features(features)
+        out, mem = self.forward_classif(features)
         out = out.flatten(start_dim=-2).sum(dim=-1)
-        return out
+        return out, mem #final leaky membrane potential 
     
 
 def _densenet(
@@ -231,7 +229,7 @@ def spiking_densenet121(num_init_channels, norm_layer: callable = None, single_s
         num_init_channels (int): number of channels of the input data
         norm_layer (callable): a layer of batch norm. No batch norm if None
     """
-    return _densenet("densenet121", 32, (6, 12, 24, 16), num_init_channels, norm_layer, single_step_neuron, **kwargs)
+    return _densenet("densenet121", 32, (2, 3, 8, 4), num_init_channels, norm_layer, single_step_neuron, **kwargs)
 
 if __name__ == "__main__":
     tau = 2.0
