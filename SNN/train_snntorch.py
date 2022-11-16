@@ -3,6 +3,7 @@ import snntorch as snn
 import snntorch.functional as SF
 from densenet_snntorch import  spiking_densenet121
 import numpy as np
+from snntorch import functional as SF
 from snntorch import utils
 batch_size = 128
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -27,7 +28,7 @@ net = spiking_densenet121(3)
 print(net)
 net.to(device)
 optimizer = torch.optim.Adam(net.parameters(), lr=2e-3, betas=(0.9, 0.999))
-loss_fn = nn.CrossEntropyLoss().cuda() 
+loss_fn = SF.ce_rate_loss() 
 # SF.mse_count_loss(correct_rate=0.8, incorrect_rate=0.2)
 
 def forward_pass(net, num_steps, data):
@@ -42,7 +43,7 @@ def forward_pass(net, num_steps, data):
   
   return torch.stack(spk_rec), torch.stack(mem_rec)
 
-num_epochs = 1
+num_epochs = 10
 num_steps = 10
 
 loss_hist = []
@@ -57,8 +58,8 @@ for epoch in range(num_epochs):
         spk_rec, _ = forward_pass(net, 10, data)
         #print(spk_rec[0].shape)
         #spk_rec = spk_rec[0]
-        spk_rec = torch.sum(spk_rec, dim=0)
-        spk_rec = torch.reshape(spk_rec, (128, 10))
+        #spk_rec = torch.sum(spk_rec, dim=0)
+        #spk_rec = torch.reshape(spk_rec, (128, 10))
         loss_val = loss_fn(spk_rec, targets)
 
         # Gradient calculation + weight update

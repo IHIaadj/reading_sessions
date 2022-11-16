@@ -17,7 +17,7 @@ import numpy as np
 import itertools
 
 # dataloader arguments
-batch_size = 8
+batch_size = 128
 dtype = torch.float
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
@@ -37,16 +37,26 @@ beta = 0.9
 spike_grad = surrogate.fast_sigmoid()
 #  Initialize Network
 num_init_features = 64
-net = nn.Sequential(nn.Conv2d(3, num_init_features, kernel_size=7, stride=2, padding=3, bias=False),
-                    nn.BatchNorm2d(num_init_features),
+#net = nn.Sequential(nn.Conv2d(3, num_init_features, kernel_size=7, stride=2, padding=3, bias=False),
+#                    nn.BatchNorm2d(num_init_features),
+#                    snn.Leaky(beta=beta, spike_grad=spike_grad, init_hidden=True),
+#                    nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
+#                    snn.Leaky(beta=beta, spike_grad=spike_grad, init_hidden=True),
+#                    nn.Flatten(),
+#                    nn.Linear(4096, 10),
+#                    snn.Leaky(beta=beta, spike_grad=spike_grad, init_hidden=True, output=True)
+#                    ).to(device)
+
+net = nn.Sequential(nn.Conv2d(3, 12, 5),
+                    nn.MaxPool2d(2),
                     snn.Leaky(beta=beta, spike_grad=spike_grad, init_hidden=True),
-                    nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
+                    nn.Conv2d(12, 64, 5),
+                    nn.MaxPool2d(2),
                     snn.Leaky(beta=beta, spike_grad=spike_grad, init_hidden=True),
                     nn.Flatten(),
-                    nn.Linear(4096, 10),
+                    nn.Linear(1600, 10),
                     snn.Leaky(beta=beta, spike_grad=spike_grad, init_hidden=True, output=True)
                     ).to(device)
-
 
 def forward_pass(net, num_steps, data):
   mem_rec = []
@@ -60,7 +70,7 @@ def forward_pass(net, num_steps, data):
   
   return torch.stack(spk_rec), torch.stack(mem_rec)
 
-loss_fn = SF.ce_rate_loss()
+loss_fn =nn.CrossEntropyLoss().to(device)
 
 def batch_accuracy(train_loader, net, num_steps):
   with torch.no_grad():
@@ -79,42 +89,81 @@ def batch_accuracy(train_loader, net, num_steps):
 
   return acc/total
 
-optimizer = torch.optim.Adam(net.parameters(), lr=1e-2, betas=(0.9, 0.999))
-num_epochs = 2
+def print_batch_accuracy(data, targets, train=False):
+    output, _ = forward_pass(net,num_steps,data)
+    _, idx = output.sum(dim=0).max(1)
+    acc = np.mean((targets == idx).detach().cpu().numpy())
+    return acc 
+
+optimizer = torch.optim.Adam(net.parameters(), lr=0.1, betas=(0.9, 0.999))
+num_epochs = 10
 num_steps=1
 test_acc_hist = []
 
-# training loop
+# training loopnum_epochs = 1
+loss_hist = []
+test_loss_hist = []
+counter = 0
+training_acc = []
+test_acc = []
+# Outer training loop
+epochs = np.arange(num_epochs)
 for epoch in range(num_epochs):
-
-    #avg_loss = backprop.BPTT(net, train_loader, optimizer=optimizer, criterion=loss_fn, 
-    #                        num_steps=num_steps, time_var=False, device=device)
-    
-    for i, (data, targets) in enumerate(iter(train_loader)):
+    print("EPOCH : ", epoch)
+    iter_counter = 0
+    train_batch = iter(train_loader)
+    avg_loss = 0.0
+    avg_test_loss= 0.0
+    avg_acc = 0.0
+    avg_test_acc = 0.0
+    # Minibatch training loop
+    for data, targets in train_batch:
         data = data.to(device)
         targets = targets.to(device)
-        spk_rec, _ = forward_pass(net, num_steps, data)
 
-        loss_val = loss_fn(spk_rec, targets)
+        # forward pass
+        net.train()
+        spk_rec, mem_rec = forward_pass(net,num_steps,data)
+
+        # initialize the loss & sum over time
+        loss_val = torch.zeros((1), dtype=dtype, device=device)
+        #for step in range(num_steps):
+
+        loss_val = loss_fn(spk_rec[0], targets)
 
         # Gradient calculation + weight update
         optimizer.zero_grad()
+        #print(loss_val)
         loss_val.backward()
         optimizer.step()
+        avg_loss += loss_val.item()
+        # Store loss history for future plotting
+        avg_acc += print_batch_accuracy(data, targets, train=True)
+        # Test set
+        with torch.no_grad():
+            net.eval()
+            test_data, test_targets = next(iter(test_loader))
+            test_data = test_data.to(device)
+            test_targets = test_targets.to(device)
 
-        print(f"Epoch {epoch}, Train Loss: {loss_val.item()}")
+            # Test set forward pass
+            test_spk, test_mem = forward_pass(net,num_steps,test_data)
 
-    # Test set accuracy
-    test_acc = batch_accuracy(test_loader, net, num_steps)
-    test_acc_hist.append(test_acc)
-
-    print(f"Epoch {epoch}, Test Acc: {test_acc * 100:.2f}%\n")
-
-fig = plt.figure(facecolor="w")
-plt.plot(test_acc_hist)
-plt.title("Test Set Accuracy")
-plt.xlabel("Epoch")
-plt.ylabel("Accuracy")
+            # Test set loss
+            test_loss = torch.zeros((1), dtype=dtype, device=device)
+            for step in range(num_steps):
+                test_loss += loss_fn(test_mem[step], test_targets)
+            avg_test_loss += test_loss.item()
+            avg_test_acc += print_batch_accuracy(test_data, test_targets, train=False)
+    
+    loss_hist.append(avg_loss/len(train_batch))
+    training_acc.append(avg_acc/len(train_batch))
+    test_loss_hist.append(avg_test_loss/len(test_loader))
+    test_acc_hist.append(avg_test_acc/len(test_loader))
+    print(print_batch_accuracy(test_data, test_targets, train=False))
+           
+print(training_acc)
+print(test_acc)
+plt.plot(epochs, loss_hist, label="Training loss")
+plt.plot(epochs, test_loss_hist, label="Validation loss")
 plt.show()
-
-
