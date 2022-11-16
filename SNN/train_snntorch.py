@@ -2,8 +2,14 @@ import torch, torch.nn as nn
 import snntorch as snn
 import snntorch.functional as SF
 from densenet_snntorch import  spiking_densenet121
+<<<<<<< HEAD
 
 batch_size = 1
+=======
+import numpy as np
+from snntorch import utils
+batch_size = 128
+>>>>>>> cb87bf32a2fed9533b3704a3e6731aa01c9777bc
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
@@ -22,12 +28,26 @@ train_loader = DataLoader(train, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(test, batch_size=batch_size, shuffle=True)
 
 net = spiking_densenet121(3)
+print(net)
 net.to(device)
 optimizer = torch.optim.Adam(net.parameters(), lr=2e-3, betas=(0.9, 0.999))
-loss_fn = SF.mse_count_loss(correct_rate=0.8, incorrect_rate=0.2)
+loss_fn = nn.CrossEntropyLoss().cuda() 
+# SF.mse_count_loss(correct_rate=0.8, incorrect_rate=0.2)
+
+def forward_pass(net, num_steps, data):
+  mem_rec = []
+  spk_rec = []
+  utils.reset(net)  # resets hidden states for all LIF neurons in net
+
+  for step in range(num_steps):
+      spk_out, mem_out = net(data)
+      spk_rec.append(spk_out)
+      mem_rec.append(mem_out)
+  
+  return torch.stack(spk_rec), torch.stack(mem_rec)
 
 num_epochs = 1
-num_steps = 100
+num_steps = 10
 
 loss_hist = []
 acc_hist = []
@@ -38,12 +58,16 @@ for epoch in range(num_epochs):
     for i, (data, targets) in enumerate(iter(train_loader)):
         data = data.to(device)
         targets = targets.to(device)
-        spk_rec, _ = net(data)
+        spk_rec, _ = forward_pass(net, 10, data)
+        #print(spk_rec[0].shape)
+        #spk_rec = spk_rec[0]
+        spk_rec = torch.sum(spk_rec, dim=0)
+        spk_rec = torch.reshape(spk_rec, (128, 10))
         loss_val = loss_fn(spk_rec, targets)
 
         # Gradient calculation + weight update
         optimizer.zero_grad()
-        loss_val.backward(retain_graph=True)
+        loss_val.backward()
         optimizer.step()
 
         # Store loss history for future plotting
@@ -52,7 +76,7 @@ for epoch in range(num_epochs):
 
         # print every 25 iterations
         if i % 25 == 0:
-          print(f"Epoch {epoch}, Iteration {i} \nTrain Loss: {loss_val.item():.2f}")
+          print(f"Epoch {epoch}, Iteration {i} \nTrain Loss: {loss_val.item()}")
 
           # check accuracy on a single batch
           #acc = SF.accuracy_rate(spk_rec, targets)  
