@@ -2,12 +2,16 @@ import torch, torch.nn as nn
 import snntorch as snn
 import snntorch.functional as SF
 from densenet_snntorch import  spiking_densenet121
+<<<<<<< HEAD
+
+batch_size = 1
+=======
 import numpy as np
 from snntorch import functional as SF
 from snntorch import utils
 batch_size = 128
+>>>>>>> cb87bf32a2fed9533b3704a3e6731aa01c9777bc
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
@@ -69,6 +73,7 @@ for epoch in range(num_epochs):
 
         # Store loss history for future plotting
         loss_hist.append(loss_val.item())
+        torch.cuda.empty_cache()
 
         # print every 25 iterations
         if i % 25 == 0:
@@ -78,4 +83,6 @@ for epoch in range(num_epochs):
           #acc = SF.accuracy_rate(spk_rec, targets)  
           #acc_hist.append(acc)
           #print(f"Accuracy: {acc * 100:.2f}%\n")
+        torch.cuda.empty_cache()
+
         
