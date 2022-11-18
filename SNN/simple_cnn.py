@@ -18,6 +18,8 @@ import itertools
 
 # dataloader arguments
 batch_size = 128
+num_epochs = 10
+num_steps = 25
 dtype = torch.float
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
@@ -33,10 +35,10 @@ test = datasets.CIFAR10(".", train=False, download=True, transform=transform)
 train_loader = DataLoader(train, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(test, batch_size=batch_size, shuffle=True)
 
-beta = 0.9
+beta = 0.5
 spike_grad = surrogate.fast_sigmoid()
 #  Initialize Network
-num_init_features = 64
+#num_init_features = 64
 #net = nn.Sequential(nn.Conv2d(3, num_init_features, kernel_size=7, stride=2, padding=3, bias=False),
 #                    nn.BatchNorm2d(num_init_features),
 #                    snn.Leaky(beta=beta, spike_grad=spike_grad, init_hidden=True),
@@ -70,7 +72,7 @@ def forward_pass(net, num_steps, data):
   
   return torch.stack(spk_rec), torch.stack(mem_rec)
 
-loss_fn =nn.CrossEntropyLoss().to(device)
+loss_fn = nn.CrossEntropyLoss().to(device)
 
 def batch_accuracy(train_loader, net, num_steps):
   with torch.no_grad():
@@ -95,9 +97,7 @@ def print_batch_accuracy(data, targets, train=False):
     acc = np.mean((targets == idx).detach().cpu().numpy())
     return acc 
 
-optimizer = torch.optim.Adam(net.parameters(), lr=0.1, betas=(0.9, 0.999))
-num_epochs = 10
-num_steps=1
+optimizer = torch.optim.Adam(net.parameters(), lr=0.01, betas=(0.9, 0.999))
 test_acc_hist = []
 
 # training loopnum_epochs = 1
@@ -117,7 +117,7 @@ for epoch in range(num_epochs):
     avg_acc = 0.0
     avg_test_acc = 0.0
     # Minibatch training loop
-    for data, targets in train_batch:
+    for i, (data, targets) in enumerate(train_batch):
         data = data.to(device)
         targets = targets.to(device)
 
@@ -127,13 +127,11 @@ for epoch in range(num_epochs):
 
         # initialize the loss & sum over time
         loss_val = torch.zeros((1), dtype=dtype, device=device)
-        #for step in range(num_steps):
-
-        loss_val = loss_fn(spk_rec[0], targets)
+        for step in range(num_steps):
+            loss_val += loss_fn(mem_rec[step], targets)
 
         # Gradient calculation + weight update
         optimizer.zero_grad()
-        #print(loss_val)
         loss_val.backward()
         optimizer.step()
         avg_loss += loss_val.item()
@@ -155,15 +153,21 @@ for epoch in range(num_epochs):
                 test_loss += loss_fn(test_mem[step], test_targets)
             avg_test_loss += test_loss.item()
             avg_test_acc += print_batch_accuracy(test_data, test_targets, train=False)
+
+            # print every 25 iterations
+            if i % 10 == 0:
+                acc = print_batch_accuracy(test_data, test_targets, train=False)
+                print(f"Epoch {epoch}, Iteration {i} \nSingle mini batch test acc: {acc*100:.2f}%")
+
     
     loss_hist.append(avg_loss/len(train_batch))
     training_acc.append(avg_acc/len(train_batch))
     test_loss_hist.append(avg_test_loss/len(test_loader))
-    test_acc_hist.append(avg_test_acc/len(test_loader))
-    print(print_batch_accuracy(test_data, test_targets, train=False))
-           
-print(training_acc)
-print(test_acc)
+    avg_acc = avg_test_acc/len(test_loader)
+    test_acc_hist.append(avg_acc)
+    print(f"Epoch {epoch}, Iteration {i} \nAvg train acc: {avg_acc*100:.2f}%")
+          
+plt.figure() 
 plt.plot(epochs, loss_hist, label="Training loss")
 plt.plot(epochs, test_loss_hist, label="Validation loss")
-plt.show()
+plt.savefig("loss.pdf")
