@@ -120,7 +120,7 @@ for epoch in range(num_epochs):
 
     loss_hist.append(avg_loss/len(train_batch))
     training_acc.append(avg_acc/len(train_batch))
-    test_loss_hist.append(avg_test_loss/len(test_loader))
-    avg_acc = avg_test_acc/len(test_loader)
+    test_loss_hist.append(avg_test_loss/len(train_batch))
+    avg_acc = avg_test_acc/len(train_batch)
     test_acc_hist.append(avg_acc)
     print(f"Epoch {epoch}, Iteration {i} \nAvg train acc: {avg_acc*100:.2f}%")

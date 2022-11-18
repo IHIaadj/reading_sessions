@@ -97,7 +97,7 @@ def print_batch_accuracy(data, targets, train=False):
     acc = np.mean((targets == idx).detach().cpu().numpy())
     return acc 
 
-optimizer = torch.optim.Adam(net.parameters(), lr=0.01, betas=(0.9, 0.999))
+optimizer = torch.optim.Adam(net.parameters(), lr=2e-3, betas=(0.9, 0.999))
 test_acc_hist = []
 
 # training loopnum_epochs = 1
@@ -158,12 +158,11 @@ for epoch in range(num_epochs):
             if i % 10 == 0:
                 acc = print_batch_accuracy(test_data, test_targets, train=False)
                 print(f"Epoch {epoch}, Iteration {i} \nSingle mini batch test acc: {acc*100:.2f}%")
-
-    
+ 
     loss_hist.append(avg_loss/len(train_batch))
     training_acc.append(avg_acc/len(train_batch))
-    test_loss_hist.append(avg_test_loss/len(test_loader))
-    avg_acc = avg_test_acc/len(test_loader)
+    test_loss_hist.append(avg_test_loss/len(train_batch))
+    avg_acc = avg_test_acc/len(train_batch)
     test_acc_hist.append(avg_acc)
     print(f"Epoch {epoch}, Iteration {i} \nAvg train acc: {avg_acc*100:.2f}%")
           
